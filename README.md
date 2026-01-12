@@ -53,10 +53,10 @@ Administrators only need to intervene if the SSH key authentication fails or SEL
 SSH will refuse keys if permissions are too loose.
 
 ```
-sudo chown -R test1:test1 /home/test1
-sudo chmod 755 /home/test1
-sudo chmod 700 /home/test1/.ssh
-sudo chmod 600 /home/test1/.ssh/authorized_keys
+sudo chown -R <professor_username>:<professor_username> /home/<professor_username>
+sudo chmod 755 /home/<professor_username>
+sudo chmod 700 /home/<professor_username>/.ssh
+sudo chmod 600 /home/<professor_username>/.ssh/authorized_keys
 ```
 
 ### Fix 2: SELinux Contexts (Rocky Specific)
@@ -64,5 +64,5 @@ sudo chmod 600 /home/test1/.ssh/authorized_keys
 If students are asked for a password despite having keys, the SELinux label is likely wrong.
 
 ```
-sudo restorecon -Rv /home/test1/.ssh
+sudo restorecon -Rv /home/<professor_username>/.ssh
 ```
