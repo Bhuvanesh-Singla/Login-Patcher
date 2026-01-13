@@ -15,7 +15,7 @@ A patch that enables secure student access to the departmental GPU server withou
         cp scripts/gatekeeper.sh ~/gatekeeper.sh
         chmod +x ~/gatekeeper.sh
     ```
-4. Create the folder where students will send their public keys:
+4. Create the folder in home directory where students will send their public keys:
    ```bash
         mkdir -p ~/incoming_keys
     ```
