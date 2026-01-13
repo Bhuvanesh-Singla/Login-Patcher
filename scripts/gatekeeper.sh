@@ -17,7 +17,7 @@ export JUPYTER_DATA_DIR="$WORKSPACE/.local/share/jupyter"
 export PATH="$WORKSPACE/bin:$PYTHONUSERBASE/bin:/usr/local/bin:/usr/bin:/bin"
 
 if cd "$WORKSPACE"; then
-    echo "--- Welcome to the HPC AI Lab ($STUDENT_NAME) ---"
+    echo "--- Welcome to the IT Department GPU Server ($STUDENT_NAME) ---"
     echo "Workspace: $PWD"
     echo "To install libraries use: pip install --user <package>"
 else
