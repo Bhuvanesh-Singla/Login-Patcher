@@ -8,11 +8,12 @@ A patch that enables secure student access to the departmental GPU server withou
     ```
 2. Navigate to the cloned directory:
    ```bash
-   cd Login-Patcher
+   cd Login-Patcher/scripts
    ```
-3. Run the setup script to configure your server:
+3. Convert the setup script to runnable and run it to configure your server:
    ```bash
-   ./scripts/setup.sh
+    chmod +x setup.sh
+   ./setup.sh
     ```
 4. Onboard your students by sharing the [following](#instructions-for-students) instructions with them.
 5. Put the .pub files received from students into the `incoming_keys` folder.
