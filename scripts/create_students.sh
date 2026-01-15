@@ -75,7 +75,7 @@ function cd() {
     if [[ "$target" == "$HOME"* ]]; then
         builtin cd "$target"
     else
-        echo "⛔ Access Denied: Stay in your workspace."
+        echo "Access Denied: Stay in your workspace."
     fi
 }
 export -f cd
