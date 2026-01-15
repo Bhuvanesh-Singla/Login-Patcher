@@ -16,13 +16,9 @@ A patch that enables secure student access to the departmental GPU server withou
     ```
 4. Onboard your students by sharing the [following](#instructions-for-students) instructions with them.
 5. Put the .pub files received from students into the `incoming_keys` folder.
-6. Convert the create students script to executable:
+6. Run the ``create_students.sh`` script to add students to the server:
    ```bash
-        chmod +x ~/Login-Patcher/scripts/create_students.sh
-    ```
-7. Run the ``create_students.sh`` script to add students to the server:
-   ```bash
-        ./scripts/create_students.sh
+        ./create_students.sh
     ```
 
 ## Instructions for Students
