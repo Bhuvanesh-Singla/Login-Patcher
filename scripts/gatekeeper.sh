@@ -36,7 +36,7 @@ export PATH="$WORKSPACE/bin:$PYTHONUSERBASE/bin:/usr/local/bin:/usr/bin:/bin:/us
 # 5. Access the Workspace
 if cd "$WORKSPACE"; then
     echo "-----------------------------------------------------"
-    echo "   Welcome to the AI Research Lab ($STUDENT_NAME)"
+    echo "   Welcome to the IT Department ($STUDENT_NAME)"
     echo "-----------------------------------------------------"
     echo " * Workspace: $PWD"
     echo " * Git: Use HTTPS with PAT. Credentials are saved locally."

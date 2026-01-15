@@ -10,22 +10,17 @@ A patch that enables secure student access to the departmental GPU server withou
    ```bash
    cd Login-Patcher
    ```
-3. Copy the gatekeeper script to your home directory and make it executable:
-    ```bash
-        cp scripts/gatekeeper.sh ~/gatekeeper.sh
-        chmod +x ~/gatekeeper.sh
-    ```
-4. Create the folder in home directory where students will send their public keys:
+3. Run the setup script to configure your server:
    ```bash
-        mkdir -p ~/incoming_keys
+   ./scripts/setup.sh
     ```
-5. Onboard your students by sharing the [following](#instructions-for-students) instructions with them.
-6. Put the .pub files received from students into the `incoming_keys` folder.
-7. Convert the create students script to executable:
+4. Onboard your students by sharing the [following](#instructions-for-students) instructions with them.
+5. Put the .pub files received from students into the `incoming_keys` folder.
+6. Convert the create students script to executable:
    ```bash
         chmod +x ~/Login-Patcher/scripts/create_students.sh
     ```
-8. Run the ``create_students.sh`` script to add students to the server:
+7. Run the ``create_students.sh`` script to add students to the server:
    ```bash
         ./scripts/create_students.sh
     ```
