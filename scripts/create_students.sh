@@ -1,19 +1,17 @@
-# 1. Initialize SSH security files if they don't exist
 #!/bin/bash
+# create_students.sh
+
+# --- 1. Security & Setup ---
+PROF_HOME=$HOME
+KEY_DIR="$PROF_HOME/incoming_keys"
 mkdir -p ~/.ssh
-touch ~/.ssh/authorized_keys
 chmod 700 ~/.ssh
+touch ~/.ssh/authorized_keys
 chmod 600 ~/.ssh/authorized_keys
 
-# 2. Run the Onboarding Loop
-PROF_HOME=$HOME
-KEY_DIR="$PROF_HOME/incoming_keys" # Folder where you put student1.pub, etc.
-
 echo "--- Student Onboarding Automation ---"
-echo "Looking for public keys in $KEY_DIR"
 
 for KEY_FILE in "$KEY_DIR"/*.pub; do
-    # Get student name from filename (e.g., student1.pub -> student1)
     S=$(basename "$KEY_FILE" .pub)
     
     if [ ! -f "$KEY_FILE" ]; then
@@ -21,26 +19,75 @@ for KEY_FILE in "$KEY_DIR"/*.pub; do
         break
     fi
 
-    # Create directory structure
-    mkdir -p "$PROF_HOME/students/$S"/{bin,envs,projects,.local,.cache}
-    chmod 700 "$PROF_HOME/students/$S"
+    echo "Processing Student: $S"
+
+    # --- 2. Create Directory Structure ---
+    STUDENT_ROOT="$PROF_HOME/students/$S"
+    # Create standard folders plus AI cache folders
+    mkdir -p "$STUDENT_ROOT"/{bin,envs,projects,.local,.cache/tmp,.cache/huggingface,.cache/torch}
+    chmod 700 "$STUDENT_ROOT"
     
-    # Symlink Whitelisted Tools
-    ln -sf /usr/bin/python3 "$PROF_HOME/students/$S/bin/python3"
-    ln -sf /usr/bin/pip3 "$PROF_HOME/students/$S/bin/pip"
-    ln -sf /usr/bin/nvidia-smi "$PROF_HOME/students/$S/bin/nvidia-smi"
-    ln -sf /usr/bin/ls "$PROF_HOME/students/$S/bin/ls"
-    ln -sf /usr/bin/nano "$PROF_HOME/students/$S/bin/nano"
-    ln -sf /usr/bin/sbatch "$PROF_HOME/students/$S/bin/sbatch"
-    ln -sf /usr/bin/squeue "$PROF_HOME/students/$S/bin/squeue"
+    # --- 3. Whitelist Tools (Symlinks) ---
+    # Added: sbatch, squeue, scancel (Raw system commands)
+    # Added: nvcc, gcc, make, g++ (For AI library compilation)
+    TARGET_TOOLS="python3 nvidia-smi ls nano vim cp mv rm mkdir grep awk sed cat tail head tar gzip unzip git nvcc gcc g++ make cmake sbatch squeue scancel scontrol"
     
-    # Add key to authorized_keys with forced-command jail
+    for tool in $TARGET_TOOLS; do
+        # Try finding the tool in common locations
+        TOOL_PATH=$(which $tool 2>/dev/null)
+        if [ -n "$TOOL_PATH" ]; then
+            ln -sf "$TOOL_PATH" "$STUDENT_ROOT/bin/$tool"
+        else
+            echo "Warning: Tool '$tool' not found on host, skipping."
+        fi
+    done
+
+    # --- 4. Custom Wrappers ---
+
+    # A. PIP Wrapper (Forces local install)
+    # This is still needed to prevent students from breaking global python
+    cat << 'EOF' > "$STUDENT_ROOT/bin/pip"
+#!/bin/bash
+exec /usr/bin/python3 -m pip install --user --no-warn-script-location "$@"
+EOF
+    chmod +x "$STUDENT_ROOT/bin/pip"
+
+    # --- 5. Configuration Files ---
+
+    # A. Git PAT Configuration
+    # Pre-configure Git to store credentials in the student's folder
+    cat << EOF > "$STUDENT_ROOT/.gitconfig"
+[credential]
+    helper = store --file $STUDENT_ROOT/.git-credentials
+[user]
+    # Optional: You can force a blank name/email or let them set it locally
+EOF
+
+    # B. Navigation Lock (.bash_profile)
+    cat << 'EOF' > "$STUDENT_ROOT/.bash_profile"
+# Override 'cd' to prevent leaving the workspace
+function cd() {
+    if [ -z "$1" ]; then
+        builtin cd "$HOME"
+        return
+    fi
+    target=$(realpath -m "$1")
+    if [[ "$target" == "$HOME"* ]]; then
+        builtin cd "$target"
+    else
+        echo "⛔ Access Denied: Stay in your workspace."
+    fi
+}
+export -f cd
+EOF
+
+    # --- 6. SSH Access Grant ---
     PUB_KEY=$(cat "$KEY_FILE")
-    # Check if key is already present to avoid duplicates
+    # We check for the key string to avoid duplicates
     if ! grep -Fq "$PUB_KEY" "$PROF_HOME/.ssh/authorized_keys"; then
         echo "command=\"$PROF_HOME/gatekeeper.sh $S\",no-X11-forwarding $PUB_KEY" >> "$PROF_HOME/.ssh/authorized_keys"
-        echo "Provisioned workspace and SSH access for: $S"
+        echo "Success: $S setup complete."
     else
-        echo "Skip: $S already has access in authorized_keys"
+        echo "Skip: $S key already authorized."
     fi
 done
