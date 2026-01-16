@@ -1,6 +1,8 @@
 # Login-Patcher
 A patch that enables secure student access to the departmental GPU server without requiring professors to share personal login credentials.
 
+---
+
 ## Instructions for Professors
 1. Clone the repository:
    ```bash
@@ -21,6 +23,16 @@ A patch that enables secure student access to the departmental GPU server withou
    ```bash
         ./create_students.sh
     ```
+7. To remove a student from the server, run the `deboard_students.sh` script:
+   ```bash
+        ./deboard_students.sh <student_name> [student_name ...] 
+    ```
+8. To reset a student's workspace, run the `reset_students.sh` script:
+   ```bash
+        ./reset_students.sh <student_name> [student_name ...] 
+    ```
+
+---
 
 ## Instructions for Students
 1. Generate an SSH key pair if you don't already have one:
@@ -36,8 +48,9 @@ A patch that enables secure student access to the departmental GPU server withou
     ```
     Replace `<student_name>`, `<professor_username>`, and `<gpu_server_address>` with your actual student name, professor's username, and the GPU server's address respectively.
 
-## Administrative Troubleshooting
+---
 
+## Administrative Troubleshooting
 Administrators only need to intervene if the SSH key authentication fails or SELinux blocks the non-standard paths.
 
 ### Fix 1: Permissions (The SSH Daemon Check)

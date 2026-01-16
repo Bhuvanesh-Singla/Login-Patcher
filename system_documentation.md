@@ -2,7 +2,7 @@
 
 ## 1. System Overview
 
-This system enables a single Linux user account (`prof`) to host multiple isolated "Student" environments. It is designed IT Department HPC Server where giving every student a full system account is not feasible.
+This system enables a single Linux user account (`prof`) to host multiple isolated "Student" environments via sandboxing. It is designed IT Department HPC Server where giving every student a full system account is not feasible.
 
 ### Core Philosophy
 

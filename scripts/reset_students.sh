@@ -1,55 +1,55 @@
 #!/bin/bash
-# create_students.sh
+# reset_workspaces.sh
+# Usage: ./reset_workspaces.sh <student1_name> [student2_name ...]
+# Example: ./reset_workspaces.sh john_doe
 
-# --- 1. Security & Setup ---
 PROF_HOME=$HOME
-KEY_DIR="$PROF_HOME/incoming_keys"
 
-echo "--- Onboarding New Students ---"
+if [ $# -eq 0 ]; then
+    echo "Usage: $0 <student_name> [student_name ...]"
+    exit 1
+fi
 
-for KEY_FILE in "$KEY_DIR"/*.pub; do
-    S=$(basename "$KEY_FILE" .pub)
-    
-    if [ ! -f "$KEY_FILE" ]; then
-        echo "No .pub files found in $KEY_DIR"
-        break
-    fi
+# Confirm action
+echo "WARNING: This will WIPE ALL DATA inside the workspaces of: $@"
+read -p "Are you sure? (y/N): " confirm
+if [[ "$confirm" != "y" && "$confirm" != "Y" ]]; then
+    echo "Operation cancelled."
+    exit 0
+fi
 
+for S in "$@"; do
+    echo "-----------------------------------"
+    echo "Resetting Workspace: $S"
     STUDENT_ROOT="$PROF_HOME/students/$S"
 
-    # --- NEW: Skip Existing Students ---
-    # We check if the workspace folder exists. If so, we assume they are onboarded.
-    if [ -d "$STUDENT_ROOT" ]; then
-        echo "Skip: $S already onboarded (Workspace found)."
-        continue
-    fi
+    # Check if student exists (we check if folder exists, or at least intended path)
+    # If folder is missing, we treat it as a "repair" operation.
+    
+    echo "  > Wiping current data..."
+    rm -rf "$STUDENT_ROOT"
 
-    echo "Processing New Student: $S"
+    echo "  > Re-provisioning environment..."
 
-    # --- 2. Create Directory Structure ---
-    # Create standard folders plus AI cache folders
+    # --- RE-PROVISIONING LOGIC (Synced with create_students.sh) ---
+
+    # 1. Create Directory Structure
     mkdir -p "$STUDENT_ROOT"/{bin,envs,projects,.local,.cache/tmp,.cache/huggingface,.cache/torch}
     chmod 700 "$STUDENT_ROOT"
     
-    # --- 3. Whitelist Tools (Symlinks) ---
-    # NOTE: We removed 'python3' and 'pip' from this list because they should 
-    # come from the /data/apps/conda path we added to gatekeeper.sh.
-    # We keep system tools to ensure basic shell functionality.
+    # 2. Whitelist Tools (Conda Edition)
     TARGET_TOOLS="nvidia-smi ls nano vim cp mv rm mkdir grep awk sed cat tail head tar gzip unzip git nvcc gcc g++ make cmake sbatch squeue scancel scontrol"
     
     for tool in $TARGET_TOOLS; do
-        # Try finding the tool in common locations
         TOOL_PATH=$(which $tool 2>/dev/null)
         if [ -n "$TOOL_PATH" ]; then
             ln -sf "$TOOL_PATH" "$STUDENT_ROOT/bin/$tool"
-        else
-            echo "Warning: Tool '$tool' not found on host, skipping."
         fi
     done
 
-    # --- 4. Configuration Files ---
+    # 3. Configuration Files
 
-    # A. Git PAT Configuration
+    # Git Config
     cat << EOF > "$STUDENT_ROOT/.gitconfig"
 [credential]
     helper = store --file $STUDENT_ROOT/.git-credentials
@@ -57,8 +57,7 @@ for KEY_FILE in "$KEY_DIR"/*.pub; do
     # Optional: Leave blank
 EOF
 
-    # B. Navigation Lock (.bash_profile)
-    # We include sourcing of .bashrc here to support 'conda init'
+    # Navigation Lock (.bash_profile)
     cat << 'EOF' > "$STUDENT_ROOT/.bash_profile"
 # 1. Load interactive settings (Conda usually writes to .bashrc)
 if [ -f ~/.bashrc ]; then
@@ -81,7 +80,7 @@ function cd() {
 export -f cd
 EOF
 
-    # C. Student Documentation (README)
+    # README
     cat << 'EOF' > "$STUDENT_ROOT/README.txt"
 WELCOME TO YOUR GPU WORKSPACE
 ----------------------------------------------------------------
@@ -97,12 +96,5 @@ WELCOME TO YOUR GPU WORKSPACE
 ----------------------------------------------------------------
 EOF
 
-    # --- 5. SSH Access Grant ---
-    PUB_KEY=$(cat "$KEY_FILE")
-    if ! grep -Fq "$PUB_KEY" "$PROF_HOME/.ssh/authorized_keys"; then
-        echo "command=\"$PROF_HOME/gatekeeper.sh $S\",no-X11-forwarding $PUB_KEY" >> "$PROF_HOME/.ssh/authorized_keys"
-        echo "  > Success: Access granted."
-    else
-        echo "  > Skip: Key already authorized."
-    fi
+    echo "  [✓] Success: $S has been reset to factory settings."
 done
